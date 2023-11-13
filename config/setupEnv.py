@@ -32,4 +32,4 @@ class botConfig:
             self.loggingLevel == logging.WARNING
 
         self.telebotKey = config.get(USER_CFG_SECTION, "TELEBOT_KEY")
-        self.telegramUserId = config.get(USER_CFG_SECTION, "TELEGRAM_USER_ID")
+        self.allowedUserIds = config.get(USER_CFG_SECTION, "ALLOWED_TELEGRAM_IDS")

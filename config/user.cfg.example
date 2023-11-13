@@ -6,5 +6,5 @@ LOGGING_LEVEL = DEBUG
 # Token to access the Telegram API:
 TELEBOT_KEY = xxxxxx
 
-# User Id Telegram
-TELEGRAM_USER_ID = xxxxxx
+# Telegram Ids allowed
+TELEGRAM_USER_IDS = [xxxxxx, xxxxxx]

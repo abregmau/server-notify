@@ -19,31 +19,42 @@ confBot = setupEnv.botConfig(cfg_name)
 # Configure logging
 logging.basicConfig(format='[ %(asctime)s ]  %(message)s', filename='logs/logSystem.log', encoding='utf-8', level=confBot.loggingLevel)
 
-TOKEN = confBot.telebotKey  # token brindado por BotFather
-LOG_DIR = script_dir + "/logs/logBot.log" # directorio para log
-USERS_DIR = script_dir + "/logs/users.log" # directorio para usuarios
-knownUsers = []  # registro temporal de usuarios
+TOKEN = confBot.telebotKey  # token provided by BotFather
+ALLOWED_IDS = confBot.allowedUserIds # Chats allowed to interact with the Bot
+LOG_DIR = script_dir + "/logs/logBot.log" # directory for log
+USERS_DIR = script_dir + "/logs/users.log" # directory for users
+knownUsers = []  # temporary user registration
 
 commands = {  
-    'start': 'Empezar a mensajear con el bot',
-    'ayuda': 'Da información sobre los comandos disponibles',
-    'cd': 'Cambia el directorio actual',
-    'exec': 'Ejecuta un comando',
-    'execlist': 'Ejecuta una lista de comandos',
-    'reboot': 'Reinicia el servidor'
+    'start': 'Start messaging with the bot',
+    'help': 'Gives information about available commands',
+    'cd': 'Change the current directory',
+    'exec': 'Run a command',
+    'execlist': 'Run a list of commands',
+    'reboot': 'Reboot the server'
 }
 
 markup = types.ReplyKeyboardMarkup()
-markup.row('/start', '/ayuda', '/cd')
+markup.row('/start', '/help', '/cd')
 markup.row('/exec', '/execlist', '/reboot')
 
 def listener(messages):
     for m in messages:
         if m.content_type == 'text':
-            fecha = datetime.fromtimestamp(m.json['date'])
+            msgDate = datetime.fromtimestamp(m.json['date'])
+            
             f = open(LOG_DIR, "a+")
-            f.write(str(m.chat.first_name) + " [" + str(m.chat.id) + "]" + "[" + str(fecha) + "] : " + m.text + "\n")
+            f.write(str(m.chat.first_name) + " [" + str(m.chat.id) + "]" + "[" + str(msgDate) + "] : " + m.text + "\n")
             f.close()
+
+def validate_user_id(cid):
+    cid = str(cid)
+    if cid in ALLOWED_IDS:
+        return True
+    else:
+        print('Invalid User ID')
+        bot.send_message(cid, "I'm sorry, you are not authorized to interact with this bot.")
+        return False    
 
 bot = telebot.TeleBot(TOKEN)
 bot.set_update_listener(listener)
@@ -51,6 +62,7 @@ bot.set_update_listener(listener)
 @bot.message_handler(commands=['start'])
 def command_start(m):
     cid = m.chat.id
+    if validate_user_id(cid) == False: return
     f = open(USERS_DIR, "r")
     content = f.readlines()
     for c in content:
@@ -61,14 +73,14 @@ def command_start(m):
         f.write(str(m.chat.first_name) + ";" + str(m.chat.id) +"\n")
         f.close()
         bot.send_message(cid, "¡Bienvenido!", reply_markup=markup)
-        command_help(m)  # presenta al usuario el handler /ayuda
+        command_help(m)  # handler /help
     else:
-        bot.send_message(cid, "Ya habías empezado a hablar conmigo anteriormente. Busca el símbolo de comandos y revisa los comandos disponibles.", reply_markup=markup)
+        bot.send_message(cid, "You had already started talking to me before. Look for the command symbol and check the available commands.", reply_markup=markup)
 
-@bot.message_handler(commands=['ayuda'])
+@bot.message_handler(commands=['help'])
 def command_help(m):
     cid = m.chat.id
-    help_text = "Comandos disponibles: \n"
+    help_text = "Available commands: \n"
     for key in commands:
         help_text += "/" + key + ": "
         help_text += commands[key] + "\n"
@@ -77,43 +89,43 @@ def command_help(m):
 @bot.message_handler(commands=['reboot'])
 def command_long_text(m):
     cid = m.chat.id
-    bot.send_message(cid, "Reiniciando servidor...")
-    bot.send_chat_action(cid, 'typing') # acción "escribiendo"
+    bot.send_message(cid, "Restarting server...")
+    bot.send_chat_action(cid, 'typing') # action "typing"
     time.sleep(3)
     os.system("reboot")
 
 @bot.message_handler(commands=['exec'])
 def command_long_text(m):
     cid = m.chat.id
-    bot.send_message(cid, "Ejecutando: " + m.text[len("/exec"):])
-    bot.send_chat_action(cid, 'typing') # acción "escribiendo"
+    bot.send_message(cid, "Running: " + m.text[len("/exec"):])
+    bot.send_chat_action(cid, 'typing') # action "typing"
     time.sleep(2)
     f = os.popen(m.text[len("/exec"):])
     result = f.read()
-    bot.send_message(cid,"Resultado: " +result, reply_markup=markup)
+    bot.send_message(cid,"Result: " +result, reply_markup=markup)
 
 @bot.message_handler(commands=['cd'])
 def command_long_text(m):
     cid = m.chat.id
-    bot.send_message(cid,"Cambio a directorio:"+m.text[len("/cd"):])
-    bot.send_chat_action(cid, 'typing') # acción "escribiendo"
+    bot.send_message(cid,"Change to directory: "+m.text[len("/cd"):])
+    bot.send_chat_action(cid, 'typing') # action "typing"
     time.sleep(2)
     os.chdir(m.text[len("/cd"):].strip())
     f = os.popen("pwd")
     result = f.read()
-    bot.send_message(cid,"Directorio :"+result, reply_markup=markup)
+    bot.send_message(cid,"Directory: "+result, reply_markup=markup)
 
 @bot.message_handler(commands=['execlist'])
 def command_long_text(m):
     cid = m.chat.id
-    comandos = m.text[len("/execlist\n"):].split('\n')
-    for com in comandos:
-        bot.send_message(cid, "Ejecutando: " + com)
-        bot.send_chat_action(cid, 'typing') # acción "escribiendo"
+    commands = m.text[len("/execlist\n"):].split('\n')
+    for com in commands:
+        bot.send_message(cid, "Running: " + com)
+        bot.send_chat_action(cid, 'typing') # action "typing"
         time.sleep(2)
         f = os.popen(com)
         result = f.read()
-        bot.send_message(cid, "Resultado: " + result, )
-    bot.send_message(cid,"Comandos ejecutados", reply_markup=markup)
+        bot.send_message(cid, "Result: " + result, )
+    bot.send_message(cid,"Commands executed", reply_markup=markup)
 
 bot.polling()
