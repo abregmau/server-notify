@@ -17,7 +17,7 @@ cfg_name = script_dir + "/config/user.cfg"
 confBot = setupEnv.botConfig(cfg_name)
 
 # Configure logging
-logging.basicConfig(format='[ %(asctime)s ]  %(message)s', filename='logs/notify.log', encoding='utf-8', level=confBot.loggingLevel)
+logging.basicConfig(format='[ %(asctime)s ]  %(message)s', filename= script_dir + '/logs/notify.log', encoding='utf-8', level=confBot.loggingLevel)
 
 TOKEN = confBot.telebotKey  # token provided by BotFather
 ALLOWED_IDS = confBot.allowedUserIds # Chats allowed to interact with the Bot
@@ -29,6 +29,7 @@ commands = {
     'start': 'Start messaging with the bot',
     'help': 'Gives information about available commands',
     'cd': 'Change the current directory',
+    'ping': 'Ping to an address',
     'exec': 'Run a command',
     'execlist': 'Run a list of commands',
     'reboot': 'Reboot the server'
@@ -36,6 +37,7 @@ commands = {
 
 markup = types.ReplyKeyboardMarkup()
 markup.row('/start', '/help', '/cd')
+markup.row('/ping', '/ping', '/ping')
 markup.row('/exec', '/execlist', '/reboot')
 
 def listener(messages):

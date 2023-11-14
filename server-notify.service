@@ -1,0 +1,14 @@
+# ***bottelegram.service***
+[Unit]
+Description=Telegram Driver
+After=multi-user.target
+ 
+[Service]
+Type=simple
+User=root
+ExecStart=/bin/bash -c 'python3 /mnt/storage-1/abregmau/develop/server-notify/server-notify.py'
+StandardOutput=append:/mnt/storage-1/abregmau/develop/server-notify/logs/service/output.log
+StandardError=append:/mnt/storage-1/abregmau/develop/server-notify/logs/service/error.log
+ 
+[Install]
+WantedBy=multi-user.target
