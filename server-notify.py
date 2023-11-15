@@ -6,6 +6,8 @@ from telebot import types
 import time
 import os
 from datetime import datetime
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ReadTimeout, RequestException
 import logging
 from config import setupEnv
 
@@ -148,4 +150,22 @@ def command_long_text(m):
         bot.send_message(cid, "Result: " + result, )
     bot.send_message(cid,"Commands executed", reply_markup=markup)
 
-bot.polling(none_stop=True)
+while True:
+    try:
+        # Attempt to get updates from the bot
+        bot.polling(none_stop=True)
+
+    except (NewConnectionError, ReadTimeout, RequestException) as e:
+        # Handle the ReadTimeout exception here
+        logging.error(f"Error: {e}")
+
+        # You can try to reconnect or perform some other action
+        # You can put a delay before retrying to avoid continuous rapid cycles
+        time.sleep(5)  # Wait for 5 seconds before retrying
+
+        continue  # Go back to the beginning of the loop
+
+    except Exception as e:
+        # Handle other exceptions here
+        logging.error(f"Unexpected error: {e}")
+        break  # Break the loop in case of other errors
